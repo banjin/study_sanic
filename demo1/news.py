@@ -19,7 +19,6 @@ async def get_news(size=10):
         async with aiohttp.ClientSession() as client:
             headers = {'content-type': 'application/json'}
             params = {'pageSize':size}
-
             async with client,get(readhub_api, params=params,headers=headers) as response:
                 assert response.status == 200
                 result = await response.json()
@@ -61,6 +60,21 @@ async def index(request,page=1):
         return html('<hr>'.join(result))
     else:
         return html('<hr>'.join(html_list))
+
+@app.route('/json')
+async def index_json(request):
+    nums = request.args.get('nums',1)
+    # 获取数据
+    all_news = await get_news()
+    try:
+        return json(random.sample(all_news, int(nums)))
+    except ValueError:
+        return json(all_news)
+
+
+@app.exception(NotFound)
+def ignore_404s(request, exception):
+    return redirect('/')
 
 
 if __name__== "__main__":
